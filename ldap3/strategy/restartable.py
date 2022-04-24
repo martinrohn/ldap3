@@ -132,9 +132,23 @@ class RestartableStrategy(SyncStrategy):
             if log_enabled(ERROR):
                 log(ERROR, '<%s> while restarting <%s>', e, self.connection)
             self._add_exception_to_history(type(e)(str(e)))
-        if not self._restarting:  # machinery for restartable connection
+			if self._restarting:
+                # we have recursed here from handle_connection_restart()
+				raise e from None
+
+		# machinery for restartable connection
+        if not self._restarting:  
             self._restarting = True
-            counter = self.restartable_tries
+            self.handle_connection_restart()
+            self._restarting = False
+
+        self.connection.last_error = 'restartable connection failed to send'
+        if log_enabled(ERROR):
+            log(ERROR, '<%s> for <%s>', self.connection.last_error, self.connection)
+        raise LDAPMaximumRetriesError(self.connection.last_error, self.exception_history, self.restartable_tries)
+
+	def handle_connection_restart(self):
+		counter = self.restartable_tries
             while counter > 0:
                 if log_enabled(BASIC):
                     log(BASIC, 'try #%d to send in Restartable connection <%s>', self.restartable_tries - counter, self.connection)
@@ -196,12 +210,6 @@ class RestartableStrategy(SyncStrategy):
                 if not isinstance(self.restartable_tries, bool):
                     counter -= 1
 
-            self._restarting = False
-
-        self.connection.last_error = 'restartable connection failed to send'
-        if log_enabled(ERROR):
-            log(ERROR, '<%s> for <%s>', self.connection.last_error, self.connection)
-        raise LDAPMaximumRetriesError(self.connection.last_error, self.exception_history, self.restartable_tries)
 
     def post_send_single_response(self, message_id):
         try:
