@@ -68,7 +68,7 @@ test_user_password = 'Rc2597pfop'  # default password for users created in tests
 
 # overrides
 # test_strategy = 'ASYNC'
-# test_logging = True
+test_logging = True
 # test_lazy_connection = True
 # test_check_names = False
 # test_internal_decoder = False
@@ -160,7 +160,7 @@ if 'TRAVIS' in location:
     elif test_server_type == 'SLAPD':
         test_server = 'ipa.demo1.freeipa.org'
         test_root_partition = ''
-        test_base = 'ou=ldap3-fixtures,dc=demo1,dc=freeipa,dc=org'  # base context where test objects are created
+        test_base = 'dc=demo1,dc=freeipa,dc=org'  # base context where test objects are created
         test_moved = 'ou=ldap3-moved,dc=demo1,dc=freeipa,dc=org'  # base context where objects are moved in ModifyDN operations
         test_name_attr = 'cn'  # naming attribute for test objects
         test_int_attr = 'gidNumber'
